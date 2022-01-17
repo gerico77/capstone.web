@@ -1,6 +1,12 @@
 import { Form, Button, Row, Col, Breadcrumb } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import { Navigate } from 'react-router-dom';
 
-export default function Request() {
+function Request({ isLoggedIn }) {
+    // if (!isLoggedIn) {
+    //     return <Navigate to="/" />;
+    // }
+
     return (
         <>
             <Breadcrumb>
@@ -63,3 +69,14 @@ export default function Request() {
         </>
     );
 }
+
+function mapStateToProps(state) {
+    const { isLoggedIn } = state.auth;
+    const { message } = state.message;
+    return {
+        isLoggedIn,
+        message
+    };
+}
+
+export default connect(mapStateToProps)(Request);
