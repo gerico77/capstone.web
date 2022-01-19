@@ -49,7 +49,7 @@ const data = [
     },
 ]
 
-export default function RequestLists() {
+export default function RequestsLists() {
     return (
         <>
             <Breadcrumb>

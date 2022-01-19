@@ -3,11 +3,14 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, connect } from 'react-redux';
 import { register } from '../../actions/auth';
+import { setMessage } from '../../actions/message';
 
-function Register({ message }) {
+
+function Register({ message, props }) {
     const initialUserState = {
         username: "",
         password: "",
+        confirmPassword: "",
     };
 
     const [user, setUser] = useState(initialUserState);
@@ -18,40 +21,42 @@ function Register({ message }) {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setUser({ ...user, [name]: value });
-    }
+    };
 
-    const registerUser = (e) => {
-        const form = e.currentTarget;
+    const handleRegister = (e) => {
+        e.preventDefault();
 
-        setSuccesful(false);
+        console.log(props.role);
 
-        if (form.checkValidity() === false) {
-            e.preventDefault();
-            e.stopPropagation();
+        const { username, password, confirmPassword } = user;
+
+        if (password !== confirmPassword) {
+            dispatch(setMessage("Password and confirm password does not match."));
+        } else {
+            dispatch(
+                register(username, password, props.role)
+            )
+                .then(() => {
+                    setSuccesful(true);
+    
+                    dispatch(setMessage("User has been successfully registered."));
+                })
+                .catch(() => {
+                    setSuccesful(false);
+                });
         }
-
-        const { username, password } = user;
-
-        dispatch(
-            register(username, password)
-        )
-            .then(() => {
-                setSuccesful(true);
-            })
-            .catch(() => {
-                setSuccesful(false);
-            });
+        
     };
 
     return (
         <>
             <Breadcrumb>
-                <Breadcrumb.Item active>role_name</Breadcrumb.Item>
+                <Breadcrumb.Item active>{props.role}</Breadcrumb.Item>
                 <Breadcrumb.Item active>Register</Breadcrumb.Item>
             </Breadcrumb>
             <Row className='mt-3'>
                 <Col md={4}>
-                    <Form>
+                    <Form onSubmit={handleRegister}>
                         <Form.Group className="mb-3" controlId="username">
                             <Form.Label>Username</Form.Label>
                             <Form.Control
@@ -75,12 +80,23 @@ function Register({ message }) {
                                 onChange={handleInputChange}
                             />
                         </Form.Group>
+                        <Form.Group className="mb-3" controlId="confirmPassword">
+                            <Form.Label>Confirm Password</Form.Label>
+                            <Form.Control
+                                required
+                                type="password"
+                                placeholder="Confirm Password"
+                                name="confirmPassword"
+                                value={user.confirmPassword}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
 
-                        <Button onClick={registerUser} variant="primary">
+                        <Button type="submit" variant="primary">
                             Register
                         </Button>
                         {" "}
-                        <Link to="/">
+                        <Link to={`/${props.role.toLowerCase()}/login`}>
                             <Button variant="secondary">Back</Button>
                         </Link>
                         {message && (
@@ -95,10 +111,11 @@ function Register({ message }) {
     );
 }
 
-function mapStateToProps(state) {
+function mapStateToProps(state, props) {
     const { message } = state.message;
     return {
         message,
+        props,
     };
 }
 

@@ -1,20 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from "react-redux";
+
 import DataTable from 'react-data-table-component';
 import { Breadcrumb, Row, Col, Button, Modal, ListGroup } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
-export default function RequestLists() {
-    const initialRow = {
-        id: null,
-        recordType: '',
-        firstName: '',
-        lastName: '',
-        requestedOn: '',
-        status: ''
-    };
+import { useNavigate } from 'react-router-dom';
+import { connect } from "react-redux";
+import { getRequests } from "../../actions/issuer";
 
-    const [currentRow, setCurrentRow] = useState(initialRow);
+function RequestsLists({ user }) {
+    // const initialRow = {
+    //     id: null,
+    //     recordType: '',
+    //     firstName: '',
+    //     lastName: '',
+    //     requestedOn: '',
+    //     status: ''
+    // };
+
+    // const initialRow = {
+    //     requestId: null,
+    //     recordTypeId: null,
+    //     userId: null,
+    //     dateRequested: '',
+    //     requestStatus: '',
+    // };
+
+    // const [currentRow, setCurrentRow] = useState(initialRow);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (!user) {
+            navigate("/issuer/login");
+        } else {
+            dispatch(getRequests());
+        }
+    }, [user, navigate, dispatch]);
+    
+    const requests = useSelector(state => state.issuer);
+    // const [show, setShow] = useState(false);
 
     const ActionComponent = ({ row, onClick }) => {
         const clickHandler = () => onClick(row);
@@ -22,60 +49,80 @@ export default function RequestLists() {
         return <Button onClick={clickHandler}><FontAwesomeIcon icon={faInfoCircle} /></Button>;
     };
 
-    const [show, setShow] = useState(false);
-
-    const handleClose = () => setShow(false);
-    const handleShow = (row) => {
-        setShow(true);
-        setCurrentRow(row);
-    };
-
+    // const handleClose = () => setShow(false);
+    // const handleShow = (row) => {
+    //     setShow(true);
+    //     setCurrentRow(row);
+    // };
 
     const columns = [
         {
-            name: 'Record Type',
-            selector: row => row.recordType,
+            name: 'Record Type Id',
+            selector: row => row.recordTypeId,
         },
         {
-            name: 'First Name',
-            selector: row => row.firstName,
+            name: 'User Id',
+            selector: row => row.userId,
         },
         {
-            name: 'Last Name',
-            selector: row => row.lastName,
-        },
-        {
-            name: 'Requested on',
-            selector: row => row.requestedOn,
+            name: 'Date Requested',
+            selector: row => row.dateRequested,
         },
         {
             name: 'Status',
-            selector: row => row.status,
+            selector: row => row.requestStatus,
         },
         {
             button: true,
-            cell: (row) => <ActionComponent row={row} onClick={handleShow} />,
+            cell: (row) => <ActionComponent row={row} />,
         },
     ];
 
-    const data = [
-        {
-            id: 1,
-            recordType: 'Identity Details',
-            firstName: 'John',
-            lastName: 'Doe',
-            requestedOn: 'January 13, 2022',
-            status: 'Pending for Issuer'
-        },
-        {
-            id: 2,
-            recordType: 'Credit Scores',
-            firstName: 'Gerico',
-            lastName: 'Villegas',
-            requestedOn: 'January 14, 2022',
-            status: 'Pending for Verifier'
-        },
-    ]
+    // const columns = [
+    //     {
+    //         name: 'Record Type',
+    //         selector: row => row.recordType,
+    //     },
+    //     {
+    //         name: 'First Name',
+    //         selector: row => row.firstName,
+    //     },
+    //     {
+    //         name: 'Last Name',
+    //         selector: row => row.lastName,
+    //     },
+    //     {
+    //         name: 'Requested on',
+    //         selector: row => row.requestedOn,
+    //     },
+    //     {
+    //         name: 'Status',
+    //         selector: row => row.status,
+    //     },
+    //     {
+    //         button: true,
+    //         cell: (row) => <ActionComponent row={row} onClick={handleShow} />,
+    //     },
+    // ];
+
+    // const data = [
+    //     {
+    //         id: 1,
+    //         recordType: 'Identity Details',
+    //         firstName: 'John',
+    //         lastName: 'Doe',
+    //         requestedOn: 'January 13, 2022',
+    //         status: 'Pending for Issuer'
+    //     },
+    //     {
+    //         id: 2,
+    //         recordType: 'Credit Scores',
+    //         firstName: 'Gerico',
+    //         lastName: 'Villegas',
+    //         requestedOn: 'January 14, 2022',
+    //         status: 'Pending for Verifier'
+    //     },
+    // ]
 
     return (
         <>
@@ -88,12 +135,12 @@ export default function RequestLists() {
                     <DataTable
                         pagination
                         columns={columns}
-                        data={data}
+                        data={requests}
                     />
                 </Col>
             </Row>
 
-            <Modal show={show} onHide={handleClose}>
+            {/* <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
                     <Modal.Title>{currentRow.recordType}</Modal.Title>
                 </Modal.Header>
@@ -124,8 +171,17 @@ export default function RequestLists() {
                         Close
                     </Button>
                 </Modal.Footer>
-            </Modal>
+            </Modal> */}
 
         </>
     );
 };
+
+function mapStateToProps(state) {
+    const { user } = state.auth;
+    return {
+        user,
+    };
+}
+
+export default connect(mapStateToProps)(RequestsLists);

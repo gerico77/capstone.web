@@ -1,17 +1,18 @@
 import { Form, Button, Row, Col, Breadcrumb } from 'react-bootstrap';
-import { connect } from 'react-redux';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { connect } from "react-redux";
 
-function Request({ isLoggedIn }) {
-    // if (!isLoggedIn) {
-    //     return <Navigate to="/" />;
-    // }
+function Request({ user }) {
+
+    if (!user) {
+        return <Navigate to="/holder/login" />;
+    }
 
     return (
         <>
             <Breadcrumb>
-                <Breadcrumb.Item active>Holder</Breadcrumb.Item>
-                <Breadcrumb.Item active>Request</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/holder/list" }}>Holder</Breadcrumb.Item>
+                <Breadcrumb.Item active>Request Record</Breadcrumb.Item>
             </Breadcrumb>
             <Row className='mt-3'>
                 <Col md={6}>
@@ -63,6 +64,10 @@ function Request({ isLoggedIn }) {
                         <Button variant="primary" type="submit">
                             Submit
                         </Button>
+                        {" "}
+                        <Link to="/holder/list">
+                            <Button variant="secondary">Back</Button>
+                        </Link>
                     </Form>
                 </Col>
             </Row>
@@ -71,11 +76,9 @@ function Request({ isLoggedIn }) {
 }
 
 function mapStateToProps(state) {
-    const { isLoggedIn } = state.auth;
-    const { message } = state.message;
+    const { user } = state.auth;
     return {
-        isLoggedIn,
-        message
+        user,
     };
 }
 
