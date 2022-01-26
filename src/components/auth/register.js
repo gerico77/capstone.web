@@ -1,12 +1,18 @@
-import { Form, Button, Row, Col, Breadcrumb, Alert } from 'react-bootstrap';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useDispatch, connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { Form, Button, Row, Col, Breadcrumb, Alert, Spinner } from 'react-bootstrap';
+
 import { register } from '../../actions/auth';
-import { setMessage } from '../../actions/message';
+import { setMessage, clearMessage } from '../../actions/message';
 
 
-function Register({ message, props }) {
+export default function Register(props) {
+    const message = useSelector(state => state.message);
+
+    const dispatch = useDispatch();
+    
     const initialUserState = {
         username: "",
         password: "",
@@ -14,9 +20,8 @@ function Register({ message, props }) {
     };
 
     const [user, setUser] = useState(initialUserState);
+    const [loading, setLoading] = useState(false);
     const [successful, setSuccesful] = useState(false);
-
-    const dispatch = useDispatch();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -26,32 +31,46 @@ function Register({ message, props }) {
     const handleRegister = (e) => {
         e.preventDefault();
 
-        console.log(props.role);
+        setLoading(true);
 
         const { username, password, confirmPassword } = user;
 
         if (password !== confirmPassword) {
-            dispatch(setMessage("Password and confirm password does not match."));
+            dispatch(
+                setMessage("Password and Confirm Password does not match.")
+            );
+
+            setLoading(false);
         } else {
             dispatch(
-                register(username, password, props.role)
+                register(username, password, props.roleName)
             )
                 .then(() => {
                     setSuccesful(true);
-    
-                    dispatch(setMessage("User has been successfully registered."));
+                    setLoading(false);
+
+                    dispatch(
+                        setMessage("User has been successfully registered.")
+                    );
                 })
                 .catch(() => {
                     setSuccesful(false);
+                    setLoading(false);
                 });
         }
-        
+
     };
+
+    useEffect(() => {
+        return () => {
+            dispatch(clearMessage());
+        }
+    }, [dispatch]);
 
     return (
         <>
             <Breadcrumb>
-                <Breadcrumb.Item active>{props.role}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{props.roleName}</Breadcrumb.Item>
                 <Breadcrumb.Item active>Register</Breadcrumb.Item>
             </Breadcrumb>
             <Row className='mt-3'>
@@ -92,13 +111,28 @@ function Register({ message, props }) {
                             />
                         </Form.Group>
 
-                        <Button type="submit" variant="primary">
-                            Register
+                        <Button type="submit" variant="primary" disabled={loading}>
+                            {loading ? (
+                                <>
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                    {" "}Loading...
+                                </>
+                            ) : (
+                                <>Register</>
+                            )}
                         </Button>
+
                         {" "}
-                        <Link to={`/${props.role.toLowerCase()}/login`}>
+                        <Link to={`/${props.roleName.toLowerCase()}/login`}>
                             <Button variant="secondary">Back</Button>
                         </Link>
+                        
                         {message && (
                             <Alert className='mt-3' variant={successful ? "primary" : "danger"}>
                                 {message}
@@ -110,13 +144,3 @@ function Register({ message, props }) {
         </>
     );
 }
-
-function mapStateToProps(state, props) {
-    const { message } = state.message;
-    return {
-        message,
-        props,
-    };
-}
-
-export default connect(mapStateToProps)(Register);

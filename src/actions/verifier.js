@@ -1,19 +1,19 @@
 import {
-    GET_ISSUER_REQUESTS,
-    UPDATE_ISSUER_REQUEST,
+    GET_VERIFIER_REQUESTS,
+    UPDATE_VERIFIER_REQUEST,
 } from "./types";
 
-import IssuerService from "../services/issuer.service";
+import VerifierService from "../services/verifier.service";
 
 export const getRequests = () => async (dispatch) => {
     try {
-        const response = await IssuerService.getRequests();
+        const response = await VerifierService.getRequests();
 
         dispatch({
-            type: GET_ISSUER_REQUESTS,
+            type: GET_VERIFIER_REQUESTS,
             payload: response.data,
         });
-        
+
     } catch (error) {
         console.log(error);
     }
@@ -21,10 +21,10 @@ export const getRequests = () => async (dispatch) => {
 
 export const updateRequest = (data) => async (dispatch) => {
     try {
-        const response = await IssuerService.updateRequest(data);
+        const response = await VerifierService.updateRequest(data);
 
         dispatch({
-            type: UPDATE_ISSUER_REQUEST,
+            type: UPDATE_VERIFIER_REQUEST,
             payload: data,
         });
 

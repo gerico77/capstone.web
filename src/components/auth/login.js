@@ -1,17 +1,17 @@
-import { Form, Button, Row, Col, Breadcrumb, Alert } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, connect } from 'react-redux';
-import { login } from '../../actions/auth';
-import { clearMessage } from '../../actions/message';
+import { useDispatch, useSelector } from 'react-redux';
 
-function Login({ message, props }) {
+import { Form, Button, Row, Col, Breadcrumb, Alert, Spinner } from 'react-bootstrap';
+
+import { login, logout } from '../../actions/auth';
+import { setMessage, clearMessage } from '../../actions/message';
+
+export default function Login(props) {
+    const message = useSelector((state) => state.message);
+
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
-    useEffect(() => {
-        dispatch(clearMessage());
-    }, [dispatch]);
 
     const initialUserState = {
         username: "",
@@ -19,7 +19,7 @@ function Login({ message, props }) {
     };
 
     const [user, setUser] = useState(initialUserState);
-    // const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -29,7 +29,7 @@ function Login({ message, props }) {
     const handleLogin = (e) => {
         e.preventDefault();
 
-        // setLoading(true);
+        setLoading(true);
 
         const { username, password } = user;
 
@@ -37,17 +37,32 @@ function Login({ message, props }) {
             login(username, password)
         )
             .then(() => {
-                navigate(`/${props.role.toLowerCase()}/list`);
+                const loggedInUser = JSON.parse(localStorage.getItem('user'));
+
+                if (loggedInUser.roleName === props.roleName) {
+                    navigate(`/${props.roleName.toLowerCase()}/list`);
+                } else {
+                    dispatch(logout());
+                    dispatch(setMessage("User cannot access this page."));
+                }
+
+                setLoading(false);
             })
             .catch(() => {
-                // setLoading(false);
+                setLoading(false);
             });
     };
+
+    useEffect(() => {
+        return () => {
+            dispatch(clearMessage());
+        }
+    }, [dispatch]);
 
     return (
         <>
             <Breadcrumb>
-                <Breadcrumb.Item active>{props.role}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{props.roleName}</Breadcrumb.Item>
                 <Breadcrumb.Item active>Login</Breadcrumb.Item>
             </Breadcrumb>
             <Row className='mt-3'>
@@ -77,11 +92,25 @@ function Login({ message, props }) {
                             />
                         </Form.Group>
 
-                        <Button type="submit" variant="primary">
-                            Login
+                        <Button type="submit" variant="primary" disabled={loading}>
+                            {loading ? (
+                                <>
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                    {" "}Loading...
+                                </>
+                            ) :
+                                (
+                                    <>Login</>
+                                )}
                         </Button>
 
-                        <Link to={`/${props.role.toLowerCase()}/register`}>
+                        <Link to={`/${props.roleName.toLowerCase()}/register`}>
                             <Button variant="link">
                                 Create an account
                             </Button>
@@ -98,13 +127,3 @@ function Login({ message, props }) {
         </>
     );
 }
-
-function mapStateToProps(state, props) {
-    const { message } = state.message;
-    return {
-        message,
-        props
-    };
-}
-
-export default connect(mapStateToProps)(Login);

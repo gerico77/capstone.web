@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Route, Routes, NavLink } from "react-router-dom";
 import { Navbar, Nav, NavDropdown, Container, Row, Col } from "react-bootstrap";
-import { useDispatch, connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from './actions/auth';
 import Login from "./components/auth/login"
 import Register from "./components/auth/register";
@@ -8,14 +8,22 @@ import Request from "./components/holder/request";
 import HolderRequestsList from "./components/holder/requestsList";
 import IssuerRequestsList from "./components/issuer/requestsList";
 import VerifierRequestsList from "./components/verifier/requestsList";
+import IdentityDetail from "./components/record/identityDetail";
+import CriminalRecord from "./components/record/criminalRecord";
+import EducationRecord from "./components/record/educationRecord";
+import EmploymentHistory from "./components/record/employmentHistory";
+import CreditScore from "./components/record/creditScore";
 
-function App({ user }) {
+export default function App() {
+    const user = useSelector((state) => state.auth.user);
+    const selectedRecords = useSelector ((state) => state.record.selectedRecords);
+
     const dispatch = useDispatch();
 
     const handleLogout = () => {
         dispatch(logout());
     }
-
+    
     return (
         <Router>
             <Navbar bg="dark" variant="dark">
@@ -31,7 +39,8 @@ function App({ user }) {
                             </>
                         )}
                     </Nav>
-                    {user && (
+                    
+                    {(user && (!Array.isArray(selectedRecords) || !selectedRecords.length)) && (
                         <Nav>
                             <NavDropdown title={user.username} id="collasible-nav-dropdown">
                                 <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
@@ -44,18 +53,25 @@ function App({ user }) {
                 <Row>
                     <Col>
                         <Routes>
-                            <Route path="/holder/login" element={<Login role="Holder" />} />
+                            <Route path="/" element={<Login roleName="Holder" />} />
+                            <Route path="/holder/login" element={<Login roleName="Holder" />} />
                             <Route path="/holder/list" element={<HolderRequestsList />} />
-                            <Route path="/holder/register" element={<Register role="Holder" />} />
+                            <Route path="/holder/register" element={<Register roleName="Holder" />} />
                             <Route path="/holder/request" element={<Request />} />
 
-                            <Route path="/issuer/login" element={<Login role="Issuer" />} />
-                            <Route path="/issuer/register" element={<Register role="Issuer" />} />
+                            <Route path="/issuer/login" element={<Login roleName="Issuer" />} />
+                            <Route path="/issuer/register" element={<Register roleName="Issuer" />} />
                             <Route path="/issuer/list" element={<IssuerRequestsList />} />
 
-                            <Route path="/verifier/login" element={<Login role="Verifier" />} />
-                            <Route path="/verifier/register" element={<Register role="Verifier" />} />
+                            <Route path="/verifier/login" element={<Login roleName="Verifier" />} />
+                            <Route path="/verifier/register" element={<Register roleName="Verifier" />} />
                             <Route path="/verifier/list" element={<VerifierRequestsList />} />
+
+                            <Route path="/record/Identity%20Detail/:nationalId" element={<IdentityDetail />} />
+                            <Route path="/record/Criminal%20Record/:nationalId" element={<CriminalRecord />} />
+                            <Route path="/record/Education%20Record/:nationalId" element={<EducationRecord />} />
+                            <Route path="/record/Employment%20History/:nationalId" element={<EmploymentHistory />} />
+                            <Route path="/record/Credit%20Score/:nationalId" element={<CreditScore />} />
                         </Routes>
                     </Col>
                 </Row>
@@ -64,12 +80,3 @@ function App({ user }) {
     );
 
 }
-
-function mapStateToProps(state) {
-    const { user } = state.auth;
-    return {
-        user
-    };
-}
-
-export default connect(mapStateToProps)(App);
